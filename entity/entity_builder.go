@@ -1,9 +1,9 @@
-package ldsview
+package entity
 
 import (
 	"strings"
 
-	"github.com/kgoins/ldsview/internal"
+	hashset "github.com/kgoins/hashset/pkg"
 )
 
 // BuildEntity is a wrapper for BuildEntityFromAttrList
@@ -19,14 +19,12 @@ func BuildEntity(entityLines []string) Entity {
 // and filter out all attributes not in `includeAttrs`.
 // Either a null or empty HashSetStr value in `includeAttrs` will include all attributes.
 // The `includeAttrs` argument must contain lowercase string values.
-func BuildEntityFromAttrList(entityLines []string, includeAttrs *internal.HashSetStr) Entity {
+func BuildEntityFromAttrList(entityLines []string, includeAttrs *hashset.StrHashset) Entity {
 	entity := NewEntity()
 	hasAttrFilter := (includeAttrs != nil) && !includeAttrs.IsEmpty()
 
 	// Ensure that we always pull a DN if possible
 	if hasAttrFilter {
-		Logger.Info("Applying attribute filter to entity")
-
 		includeAttrs.Add("dn")
 		includeAttrs.Add("distinguishedname")
 	}

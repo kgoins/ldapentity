@@ -1,13 +1,15 @@
-package ldsview
+package entity_test
 
 import (
 	"testing"
+
+	"github.com/kgoins/ldapentity/entity"
 )
 
 func TestAttribute_BuildFromValidLine(t *testing.T) {
 	attrLine := "userAccountControl: 66048"
 
-	attr, err := BuildAttributeFromLine(attrLine)
+	attr, err := entity.BuildAttributeFromLine(attrLine)
 	if err != nil {
 		t.Fatalf("Unable to build from valid attr line")
 	}
@@ -20,7 +22,7 @@ func TestAttribute_BuildFromValidLine(t *testing.T) {
 		t.Fatalf("Failed to parse attr value")
 	}
 
-	if attr.Value.GetSingleValue() != "66048" {
+	if attr.Value.Values()[0] != "66048" {
 		t.Fatalf("Failed to parse attr value")
 	}
 }

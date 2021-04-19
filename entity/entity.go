@@ -1,4 +1,4 @@
-package ldsview
+package entity
 
 import (
 	"strings"

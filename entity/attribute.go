@@ -1,29 +1,29 @@
-package ldsview
+package entity
 
 import (
 	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/kgoins/ldsview/internal"
+	hashset "github.com/kgoins/hashset/pkg"
 )
 
 type EntityAttribute struct {
 	Name  string
-	Value internal.HashSetStr
+	Value hashset.StrHashset
 }
 
 func NewEntityAttribute(name string, value string) EntityAttribute {
 	return EntityAttribute{
 		Name:  name,
-		Value: internal.NewHashSetStr(value),
+		Value: hashset.NewStrHashset(value),
 	}
 }
 
 func BuildEntityAttribute(name string, initValue string) EntityAttribute {
 	return EntityAttribute{
 		Name:  strings.TrimRight(name, ":"),
-		Value: internal.NewHashSetStr(initValue),
+		Value: hashset.NewStrHashset(initValue),
 	}
 }
 
