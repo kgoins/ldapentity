@@ -1,16 +1,17 @@
-package sadAD_test
+package ad_test
 
 import (
 	"testing"
 
-	sadAD "github.com/kgoins/sadAD/pkg"
+	"github.com/kgoins/ldapentity/entity/ad"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSidConversion(t *testing.T) {
 	b64TestSid := "AQQAAAAAAAUVAAAA/6wpyB/p2/kT/vkD"
 	testSid := "S-1-5-21-3358174463-4191938847-66715155"
 
-	sid, err := sadAD.SidFromBase64(b64TestSid)
+	sid, err := ad.SidFromBase64(b64TestSid)
 	if err != nil {
 		t.Errorf("Error decoding SID: %s", err.Error())
 	}
@@ -25,11 +26,11 @@ func TestLdapRegex(t *testing.T) {
 	invalidLdapQuery := "((objectClass=user)(mail=*))"
 	//invalidLdapQuery2 := "(&(objectClass=user(mail=*))"
 
-	if !sadAD.IsValidLdapQuery(goodLdapQuery) {
+	if !ad.IsValidLdapQuery(goodLdapQuery) {
 		t.Errorf("Failed to identify correct LDAP query")
 	}
 
-	if sadAD.IsValidLdapQuery(invalidLdapQuery) {
+	if ad.IsValidLdapQuery(invalidLdapQuery) {
 		t.Errorf("Failed to identify invalid query with logical error")
 	}
 }
@@ -39,7 +40,7 @@ func TestTimeFromADGeneralizedTime(t *testing.T) {
 	origTime, _ := time.Parse(time.UnixDate, "Wed Nov 28 11:43:42 CST 2018")
 	adTime := "20181128174342.0Z"
 
-	convTime, err := sadAD.TimeFromADGeneralizedTime(adTime)
+	convTime, err := ad.TimeFromADGeneralizedTime(adTime)
 	if err != nil {
 		t.Errorf("Failed to convert AD generalized time")
 	}
@@ -56,7 +57,7 @@ func TestTimeFromADTimestamp(t *testing.T) {
 	origTime, _ := time.Parse(time.UnixDate, "Wed Nov 28 11:43:42 CST 2018")
 	adTime := "131880920666196310"
 
-	convTime := sadAD.TimeFromADTimestamp(adTime)
+	convTime := ad.TimeFromADTimestamp(adTime)
 
 	origTimeStr := origTime.Format(time.ANSIC)
 	convTimeStr := convTime.Format(time.ANSIC)
@@ -71,7 +72,7 @@ func TestADIntervalToDays(t *testing.T) {
 	interval := "-36288000000000"
 	days := 42
 
-	parsedDays := sadAD.ADIntervalToDays(interval)
+	parsedDays := ad.ADIntervalToDays(interval)
 
 	if parsedDays != days {
 		t.Errorf("Failed to convert from interval to days\n")
@@ -79,8 +80,10 @@ func TestADIntervalToDays(t *testing.T) {
 }
 
 func TestGetFlagsFromUAC(t *testing.T) {
+	rq := require.New(t)
 	uac := int64(262672)
-	flags := sadAD.GetFlagsFromUAC(uac)
+	flags, err := ad.GetFlagsFromUAC(uac)
+	rq.NoError(err)
 
 	if !flags.Enabled || !flags.LockedOut || !flags.SmartcardRequired {
 		t.Errorf("Failed to decode UAC attributes correctly")
@@ -94,11 +97,11 @@ func TestIsGuid(t *testing.T) {
 	invalidGuid1 := "51b16c80-901c-4270-93a7-120a8c%b42ab"
 	invalidGuid2 := "80112dcf-bec8-428d-8f0-b4fd0ca506d5"
 
-	if !sadAD.IsGuid(validGuid1) || !sadAD.IsGuid(validGuid2) {
+	if !ad.IsGuid(validGuid1) || !ad.IsGuid(validGuid2) {
 		t.Errorf("Failed to identify valid guids\n")
 	}
 
-	if sadAD.IsGuid(invalidGuid1) || sadAD.IsGuid(invalidGuid2) {
+	if ad.IsGuid(invalidGuid1) || ad.IsGuid(invalidGuid2) {
 		t.Errorf("Failed to identify invalid guids\n")
 	}
 }

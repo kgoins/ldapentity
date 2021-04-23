@@ -1,8 +1,6 @@
-package sadAD
+package ad
 
 import (
-	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -94,56 +92,4 @@ func NewGroupFromEntry(groupEntry *ldap.Entry) Group {
 	}
 
 	return group
-}
-
-// GetGroup finds a group in the current domain by its samaccountname
-func (ls LdapSession) GetGroup(samaccountname string, recurse bool) (groups []Group, err error) {
-
-	query := fmt.Sprintf(QUERY_GetGroup, samaccountname)
-
-	respEntries, err := ls.BasicSearch(query, groupAttributes, AD_pageMax)
-	if err != nil {
-		return
-	}
-
-	if len(respEntries) == 0 {
-		err = errors.New("Group not found")
-		return
-	}
-
-	for _, resp := range respEntries {
-		group := NewGroupFromEntry(resp)
-		if recurse {
-			query = fmt.Sprintf(QUERY_GetGroupRe, group.DN)
-			memberEntries, sErr := ls.BasicSearch(query, groupAttributes, AD_pageMax)
-			if sErr != nil {
-				err = sErr
-				return
-			}
-
-			for _, memberEntry := range memberEntries {
-				member := NewUserFromEntry(memberEntry)
-				group.Members = append(group.Members, member)
-			}
-
-		}
-		groups = append(groups, group)
-	}
-
-	return
-}
-
-// GetAllGroups returns all group objects in the current domain
-func (ls LdapSession) GetAllGroups() ([]Group, error) {
-	groupEntries, err := ls.BasicSearch(QUERY_GetAllGroups, groupAttributes, AD_pageMax)
-	if err != nil {
-		return []Group{}, err
-	}
-
-	groups := make([]Group, 0, len(groupEntries))
-	for _, groupEntry := range groupEntries {
-		groups = append(groups, NewGroupFromEntry(groupEntry))
-	}
-
-	return groups, nil
 }

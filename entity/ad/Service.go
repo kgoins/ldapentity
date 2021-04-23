@@ -1,4 +1,4 @@
-package sadAD
+package ad
 
 import (
 	"fmt"

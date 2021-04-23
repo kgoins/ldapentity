@@ -1,4 +1,4 @@
-package sadAD
+package ad
 
 import (
 	"strconv"
@@ -54,23 +54,4 @@ func NewTrustFromEntity(trustEntity *ldap.Entry) Trust {
 		Name:      trustEntity.GetAttributeValue(ATTR_name),
 		Direction: trustDirection,
 	}
-}
-
-func (ls LdapSession) GetExternalTrusts() ([]Trust, error) {
-	trustEntities, err := ls.BasicSearch("(objectClass=trustedDomain)", trustAttributes, AD_pageMax)
-	trusts := make([]Trust, 0, len(trustEntities))
-
-	if err != nil {
-		return trusts, err
-	}
-
-	if len(trustEntities) == 0 {
-		return trusts, err
-	}
-
-	for _, trustEntity := range trustEntities {
-		trusts = append(trusts, NewTrustFromEntity(trustEntity))
-	}
-
-	return trusts, nil
 }

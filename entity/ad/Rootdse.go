@@ -1,7 +1,6 @@
-package sadAD
+package ad
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -29,16 +28,14 @@ func (rootdse RootDSE) String() string {
 	return str
 }
 
-func rootDSEFromSearchResp(resp *ldap.SearchResult) RootDSE {
-	respObj := resp.Entries[0]
+func NewRootDSEFromEntity(entity *ldap.Entry) RootDSE {
+	currentDomain := entity.GetAttributeValue("defaultNamingContext")
+	rootNamingContext := entity.GetAttributeValue("rootDomainNamingContext")
+	configNamingContext := entity.GetAttributeValue("configurationNamingContext")
+	dnsHostName := entity.GetAttributeValue("dnsHostName")
 
-	currentDomain := respObj.GetAttributeValue("defaultNamingContext")
-	rootNamingContext := respObj.GetAttributeValue("rootDomainNamingContext")
-	configNamingContext := respObj.GetAttributeValue("configurationNamingContext")
-	dnsHostName := respObj.GetAttributeValue("dnsHostName")
-
-	realm := strings.Split(respObj.GetAttributeValue("ldapServiceName"), "@")[1]
-	forestFunctionalLevel, _ := strconv.Atoi(respObj.GetAttributeValue("forestFunctionality"))
+	realm := strings.Split(entity.GetAttributeValue("ldapServiceName"), "@")[1]
+	forestFunctionalLevel, _ := strconv.Atoi(entity.GetAttributeValue("forestFunctionality"))
 
 	rootdse := RootDSE{
 		currentDomain,
@@ -50,34 +47,4 @@ func rootDSEFromSearchResp(resp *ldap.SearchResult) RootDSE {
 	}
 
 	return rootdse
-}
-
-func (ls *LdapSession) GetRootDSE() (RootDSE, error) {
-	controls := []ldap.Control{}
-	bindReq := ldap.NewSimpleBindRequest("", "", controls)
-
-	_, err := ls.ldapConn.SimpleBind(bindReq)
-	if err != nil {
-		return RootDSE{}, errors.New("Error binding to ldap server: " + err.Error())
-	}
-
-	searchReq := ldap.NewSearchRequest(
-		"",
-		ldap.ScopeBaseObject,
-		ldap.NeverDerefAliases,
-		0,
-		0,
-		false,
-		"(objectClass=*)",
-		[]string{},
-		nil,
-	)
-
-	searchResp, err := ls.ldapConn.Search(searchReq)
-	if err != nil {
-		return RootDSE{}, errors.New("Error searching server: " + err.Error())
-	}
-
-	rootdse := rootDSEFromSearchResp(searchResp)
-	return rootdse, nil
 }

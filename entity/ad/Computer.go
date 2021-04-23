@@ -1,9 +1,6 @@
-package sadAD
+package ad
 
 import (
-	"errors"
-	"fmt"
-	"strings"
 	"time"
 
 	ldap "gopkg.in/ldap.v2"
@@ -82,55 +79,4 @@ func NewComputersFromEntries(compEntries []*ldap.Entry) []Computer {
 	}
 
 	return computers
-}
-
-func (ls LdapSession) GetComputer(hostname string) (Computer, error) {
-	filter := fmt.Sprintf(QUERY_ComputerByHostname, hostname)
-
-	compEntries, err := ls.BasicSearch(filter, compAttrs, AD_pageMax)
-	if err != nil {
-		return Computer{}, err
-	}
-
-	if len(compEntries) == 0 {
-		return Computer{}, nil
-	}
-
-	computers := NewComputersFromEntries(compEntries)
-	if len(computers) > 1 {
-		errStrBuilder := strings.Builder{}
-		errStrBuilder.WriteString("Multiple results found:\n")
-
-		for _, comp := range computers {
-			errStrBuilder.WriteString(comp.Hostname + "\n")
-		}
-
-		return Computer{}, errors.New(errStrBuilder.String())
-	}
-
-	return computers[0], nil
-}
-
-func (ls LdapSession) GetAllComputers() ([]Computer, error) {
-	compEntries, err := ls.BasicSearch(QUERY_AllComputers, compAttrs, AD_pageMax)
-	if err != nil {
-		return []Computer{}, err
-	}
-
-	if len(compEntries) == 0 {
-		return []Computer{}, nil
-	}
-
-	computers := NewComputersFromEntries(compEntries)
-	return computers, nil
-}
-
-func (ls LdapSession) GetDomainControllers() []Computer {
-	dcEntries, err := ls.BasicSearch(QUERY_DomainControllers, compAttrs, AD_pageMax)
-	if err != nil {
-		return []Computer{}
-	}
-
-	domainControllers := NewComputersFromEntries(dcEntries)
-	return domainControllers
 }

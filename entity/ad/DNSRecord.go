@@ -1,10 +1,11 @@
-package sadAD
+package ad
 
 import (
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"net"
+
+	"gopkg.in/ldap.v2"
 )
 
 const (
@@ -49,79 +50,22 @@ func decodeARecordBytes(record []byte) (net.IP, error) {
 	return addr, nil
 }
 
-// GetAllZones returns all DNSZones in the current domain
-func (ls LdapSession) GetAllZones() ([]DNSZone, error) {
-	zonesDN := fmt.Sprintf(DN_domainDnsZones, ls.RootDSE.CurrentDomain)
-	params, err := BuildSearchParams(QUERY_DNSZones, []string{ATTR_name}, zonesDN, ScopeSubtree, AD_pageMax)
-	if err != nil {
-		return nil, err
+func NewDNSZoneFromEntry(entry *ldap.Entry) DNSZone {
+	return DNSZone{
+		DN:     entry.DN,
+		Domain: entry.GetAttributeValue(ATTR_name),
 	}
-
-	zoneEntries, err := ls.Search(params)
-	if err != nil {
-		return []DNSZone{}, err
-	}
-
-	zones := make([]DNSZone, 0, len(zoneEntries))
-	for _, zoneEntry := range zoneEntries {
-		zone := DNSZone{
-			DN:     zoneEntry.DN,
-			Domain: zoneEntry.GetAttributeValue(ATTR_name),
-		}
-		zones = append(zones, zone)
-	}
-
-	return zones, nil
 }
 
-func (ls LdapSession) getRecordsInZone(zone DNSZone) ([]DNSRecord, error) {
-	params, err := BuildSearchParams(QUERY_DNSRecords, dnsRecordAttrs, zone.DN, ScopeSubtree, AD_pageMax)
+func NewDNSRecordFromEntry(entry *ldap.Entry) (DNSRecord, error) {
+	ip, err := decodeARecordBytes(entry.GetRawAttributeValue(ATTR_dnsRecord))
 	if err != nil {
-		return nil, err
+		return DNSRecord{}, err
 	}
 
-	dnsRecordEntries, err := ls.Search(params)
-	if err != nil {
-		return nil, err
-	}
-
-	var dnsRecord DNSRecord
-	dnsRecords := make([]DNSRecord, 0, len(dnsRecordEntries))
-
-	for _, entry := range dnsRecordEntries {
-		ip, err := decodeARecordBytes(entry.GetRawAttributeValue(ATTR_dnsRecord))
-		if err != nil {
-			continue
-		}
-
-		dnsRecord = DNSRecord{
-			Hostname: entry.GetAttributeValue(ATTR_name),
-			Domain:   zone.Domain,
-			Addr:     ip,
-		}
-
-		dnsRecords = append(dnsRecords, dnsRecord)
-	}
-
-	return dnsRecords, nil
-}
-
-// GetAllARecords extracts every DNS A Record in every zone the current domain knows about.
-func (ls LdapSession) GetAllARecords() ([]DNSRecord, error) {
-	zones, err := ls.GetAllZones()
-	if err != nil {
-		return []DNSRecord{}, err
-	}
-
-	var allRecords []DNSRecord
-	for _, zone := range zones {
-		zoneRecords, err := ls.getRecordsInZone(zone)
-		if err != nil {
-			continue
-		}
-
-		allRecords = append(allRecords, zoneRecords...)
-	}
-
-	return allRecords, nil
+	return DNSRecord{
+		Hostname: entry.GetAttributeValue(ATTR_name),
+		Domain:   entry.GetAttributeValue(ATTR_domaincomponent),
+		Addr:     ip,
+	}, nil
 }
