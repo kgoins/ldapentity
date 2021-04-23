@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"errors"
 	"strings"
 
 	hashset "github.com/kgoins/hashset/pkg"
@@ -8,7 +9,7 @@ import (
 
 // BuildEntity is a wrapper for BuildEntityFromAttrList
 // that doesn't require an attribute filter and returns all entities.
-func BuildEntity(entityLines []string) Entity {
+func BuildEntity(entityLines []string) (Entity, error) {
 	return BuildEntityFromAttrList(
 		entityLines,
 		nil,
@@ -19,7 +20,7 @@ func BuildEntity(entityLines []string) Entity {
 // and filter out all attributes not in `includeAttrs`.
 // Either a null or empty HashSetStr value in `includeAttrs` will include all attributes.
 // The `includeAttrs` argument must contain lowercase string values.
-func BuildEntityFromAttrList(entityLines []string, includeAttrs *hashset.StrHashset) Entity {
+func BuildEntityFromAttrList(entityLines []string, includeAttrs *hashset.StrHashset) (Entity, error) {
 	entity := NewEntity()
 	hasAttrFilter := (includeAttrs != nil) && !includeAttrs.IsEmpty()
 
@@ -44,9 +45,10 @@ func BuildEntityFromAttrList(entityLines []string, includeAttrs *hashset.StrHash
 		}
 	}
 
-	if dn, found := entity.GetDN(); found == true {
-		Logger.Info("Built entity: " + dn.Value.GetSingleValue())
+	_, found := entity.GetDN()
+	if !found {
+		return entity, errors.New("Unable to parse object DN")
 	}
 
-	return entity
+	return entity, nil
 }

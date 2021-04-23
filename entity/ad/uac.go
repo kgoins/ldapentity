@@ -8,59 +8,34 @@ import (
 	"text/tabwriter"
 
 	"github.com/audibleblink/msldapuac"
-	"github.com/kgoins/ldapentity/entity"
 )
 
-type UACFilter struct {
-	searchProp int
-}
+type UserAccountControl int
 
-func NewUACFilter(searchTerm int) UACFilter {
-	return UACFilter{searchProp: searchTerm}
-}
-
-func (filter UACFilter) Matches(entity entity.Entity) (isMatch bool) {
-	uacAttr, found := entity.GetAttribute("userAccountControl")
-	if found {
-		uacString := uacAttr.Value.Values()[0]
-		uac, _ := strconv.ParseInt(uacString, 10, 32)
-		isMatch, err := msldapuac.IsSet(uac, filter.searchProp)
-		if err != nil {
-			fmt.Printf("Unable to verify UAC: %v\n", err.Error())
-			return false
-		}
-		return isMatch
+func NewUAC(uacStr string) (uac UserAccountControl, err error) {
+	uacInt, err := strconv.ParseInt(uacStr, 10, 64)
+	if err != nil {
+		return
 	}
-	return
+
+	return UserAccountControl(uacInt), nil
 }
 
-// GetFlagsFromUAC wraps teh msldapuac dependency for easy re-definition
-func GetFlagsFromUAC(uac int64) ([]string, error) {
-	return msldapuac.ParseUAC(uac)
+// GetFlagNames returns the string representation of all set UAC flags
+func (uac UserAccountControl) GetFlagNames() ([]string, error) {
+	return msldapuac.ParseUAC(int64(uac))
 }
 
-// UACSearch will seek for entities who have the given UAC property set
-func UACSearch(entities *[]entity.Entity, uacProp int) (matches []entity.Entity) {
-	for _, entity := range *entities {
-		uac, found := entity.GetAttribute("userAccountControl")
-		if !found {
-			continue
-		}
-
-		uacStr := uac.Value.Values()[0]
-		i64, _ := strconv.ParseInt(uacStr, 10, 32)
-		isMatch, err := msldapuac.IsSet(i64, uacProp)
-		if err != nil {
-			continue
-		}
-		if isMatch {
-			matches = append(matches, entity)
-		}
-	}
-	return
+// IsFlagSet
+func (uac UserAccountControl) IsFlagSet(flag int) (bool, error) {
+	return msldapuac.IsSet(int64(uac), flag)
 }
 
-//UACPrint prints the available UAC options that are available for searching
+func GetUACFlagName(flag int) string {
+	return msldapuac.PropertyMap[flag]
+}
+
+// UACPrint prints the available UAC options that are available for searching
 func UACPrint(dest io.Writer) {
 	w := new(tabwriter.Writer)
 	w.Init(dest, 8, 8, 0, '\t', 0)
@@ -78,18 +53,4 @@ func UACPrint(dest io.Writer) {
 	for _, line := range sorted {
 		fmt.Fprintf(w, line)
 	}
-}
-
-//UACParse take a UAC int and return
-func UACParse(uacValue string) (flagNames []string, err error) {
-	uacInt, err := strconv.ParseInt(uacValue, 10, 64)
-	if err != nil {
-		return
-	}
-
-	flagNames, err = GetFlagsFromUAC(uacInt)
-	if err != nil {
-		return
-	}
-	return
 }

@@ -22,7 +22,7 @@ type User struct {
 	SamAccountName string
 	DisplayName    string
 
-	AccountFlags UACFlags
+	AccountFlags UserAccountControl
 
 	SID   string
 	Email string
@@ -84,25 +84,24 @@ func newUserStubsFromDNs(dnList []string) []User {
 	return users
 }
 
-func NewUserFromEntry(userEntry *ldap.Entry) User {
+func NewUserFromEntry(userEntry *ldap.Entry) (usr User, err error) {
 	uacStr := userEntry.GetAttributeValue("userAccountControl")
-	uac, _ := strconv.ParseInt(uacStr, 10, 32)
-	acctFlags := GetFlagsFromUAC(uac)
+	acctFlags, err := NewUAC(uacStr)
 
 	sidBytes := userEntry.GetRawAttributeValue("objectSid")
 	sid := SidFromBytes(sidBytes)
 
 	adCreatedTime := userEntry.GetAttributeValue("whenCreated")
-	created, _ := TimeFromADGeneralizedTime(adCreatedTime)
+	created, err := TimeFromADGeneralizedTime(adCreatedTime)
+	if err != nil {
+		return
+	}
 
 	adChangedTime := userEntry.GetAttributeValue("whenChanged")
 	changed, _ := TimeFromADGeneralizedTime(adChangedTime)
 
 	adPwdSetTime := userEntry.GetAttributeValue("pwdLastSet")
 	passLastSet := TimeFromADTimestamp(adPwdSetTime)
-	if passLastSet.IsZero() {
-		acctFlags.MustChangePassword = true
-	}
 
 	lastLogonStr := userEntry.GetAttributeValue("lastLogon")
 	lastLogonTime := TimeFromADTimestamp(lastLogonStr)
@@ -117,9 +116,15 @@ func NewUserFromEntry(userEntry *ldap.Entry) User {
 		lastLogon = lastLogonTimestamp
 	}
 
-	logonCount, _ := strconv.Atoi(userEntry.GetAttributeValue("logonCount"))
+	logonCount, err := strconv.Atoi(userEntry.GetAttributeValue("logonCount"))
+	if err != nil {
+		return
+	}
 
-	adminCount, _ := strconv.Atoi(userEntry.GetAttributeValue("adminCount"))
+	adminCount, err := strconv.Atoi(userEntry.GetAttributeValue("adminCount"))
+	if err != nil {
+		return
+	}
 	isAdmin := (adminCount == 1)
 
 	groupDNList := userEntry.GetAttributeValues("memberOf")
@@ -130,7 +135,7 @@ func NewUserFromEntry(userEntry *ldap.Entry) User {
 	serviceStrs := userEntry.GetAttributeValues("servicePrincipalName")
 	services := NewServicePrincipals(serviceStrs, samaccountname)
 
-	user := User{
+	usr = User{
 		DN:             userEntry.GetAttributeValue("distinguishedName"),
 		CN:             userEntry.GetAttributeValue("cn"),
 		UPN:            userEntry.GetAttributeValue("userPrincipalName"),
@@ -158,5 +163,5 @@ func NewUserFromEntry(userEntry *ldap.Entry) User {
 		Services: services,
 	}
 
-	return user
+	return
 }
