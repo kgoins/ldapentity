@@ -1,9 +1,9 @@
 package ad
 
 import (
-	"strconv"
+	"errors"
 
-	ldap "gopkg.in/ldap.v2"
+	"github.com/kgoins/ldapentity/entity"
 )
 
 type TrustDirection int
@@ -41,17 +41,19 @@ type Trust struct {
 	Direction TrustDirection
 }
 
-var trustAttributes = []string{
-	ATTR_name,
-	ATTR_trustDirection,
-}
-
-func NewTrustFromEntity(trustEntity *ldap.Entry) Trust {
-	tdInt, _ := strconv.Atoi(trustEntity.GetAttributeValue(ATTR_trustDirection))
-	trustDirection := DecodeTrustDirection(tdInt)
-
-	return Trust{
-		Name:      trustEntity.GetAttributeValue(ATTR_name),
-		Direction: trustDirection,
+func NewTrustFromEntity(trustEntity entity.Entity) (t Trust, err error) {
+	tdInt, found, err := trustEntity.GetAsInt(ATTR_trustDirection)
+	if err != nil {
+		return
 	}
+
+	if !found {
+		err = errors.New("Trust direction not found")
+		return
+	}
+
+	t.Direction = DecodeTrustDirection(tdInt)
+	t.Name, _ = trustEntity.GetSingleValuedAttribute(ATTR_name)
+
+	return
 }

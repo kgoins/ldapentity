@@ -24,7 +24,7 @@ func (c Computer) HasService(serviceName string) bool {
 	return false
 }
 
-func NewComputerFromEntry(compEntity entity.Entity) (comp Computer, err error) {
+func NewComputerFromEntity(compEntity entity.Entity) (comp Computer, err error) {
 	adEntity, err := NewADEntity(compEntity)
 	if err != nil {
 		return
@@ -58,7 +58,7 @@ func NewComputerFromEntry(compEntity entity.Entity) (comp Computer, err error) {
 func NewComputersFromEntries(compEntries []entity.Entity) []Computer {
 	computers := make([]Computer, 0, len(compEntries))
 	for _, compEntry := range compEntries {
-		computer, err := NewComputerFromEntry(compEntry)
+		computer, err := NewComputerFromEntity(compEntry)
 		if err != nil {
 			continue
 		}

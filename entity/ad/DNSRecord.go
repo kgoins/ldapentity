@@ -1,11 +1,12 @@
 package ad
 
 import (
+	"encoding/base64"
 	"encoding/binary"
 	"errors"
 	"net"
 
-	"gopkg.in/ldap.v2"
+	"github.com/kgoins/ldapentity/entity"
 )
 
 const (
@@ -29,6 +30,15 @@ type DNSZone struct {
 	Domain string
 }
 
+func decodeARecordBytesFromB64(recordB64 string) (ip net.IP, err error) {
+	record, err := base64.StdEncoding.DecodeString(recordB64)
+	if err != nil {
+		return
+	}
+
+	return decodeARecordBytes(record)
+}
+
 func decodeARecordBytes(record []byte) (net.IP, error) {
 	rDataTypeBytes := []byte{record[2], record[3]}
 
@@ -45,22 +55,31 @@ func decodeARecordBytes(record []byte) (net.IP, error) {
 	return addr, nil
 }
 
-func NewDNSZoneFromEntry(entry *ldap.Entry) DNSZone {
-	return DNSZone{
-		DN:     entry.DN,
-		Domain: entry.GetAttributeValue(ATTR_name),
+func NewDNSZoneFromEntry(entry entity.Entity) (zone DNSZone, err error) {
+	found := true
+	zone.DN, found = entry.GetDN()
+	if !found {
+		err = errors.New("Unable to get DN")
+		return
 	}
+
+	zone.Domain, _ = entry.GetSingleValuedAttribute(ATTR_name)
+	return
 }
 
-func NewDNSRecordFromEntry(entry *ldap.Entry) (DNSRecord, error) {
-	ip, err := decodeARecordBytes(entry.GetRawAttributeValue(ATTR_dnsRecord))
-	if err != nil {
-		return DNSRecord{}, err
+func NewDNSRecordFromEntity(entry entity.Entity) (r DNSRecord, err error) {
+	recordStr, found := entry.GetSingleValuedAttribute(ATTR_dnsRecord)
+	if !found {
+		err = errors.New("Unable to get record value")
+		return
 	}
 
-	return DNSRecord{
-		Hostname: entry.GetAttributeValue(ATTR_name),
-		Domain:   entry.GetAttributeValue(ATTR_domaincomponent),
-		Addr:     ip,
-	}, nil
+	r.Addr, err = decodeARecordBytesFromB64(recordStr)
+	if err != nil {
+		return
+	}
+
+	r.Hostname, _ = entry.GetSingleValuedAttribute(ATTR_name)
+	r.Domain, _ = entry.GetSingleValuedAttribute(ATTR_domaincomponent)
+	return
 }

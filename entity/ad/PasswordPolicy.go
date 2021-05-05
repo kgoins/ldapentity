@@ -15,7 +15,7 @@ type PasswordPolicy struct {
 	MaxAge int
 }
 
-func NewPasswordPolicyFromEntry(policyEntity entity.Entity) (p PasswordPolicy, err error) {
+func NewPasswordPolicyFromEntity(policyEntity entity.Entity) (p PasswordPolicy, err error) {
 	p.MinLength, _, err = policyEntity.GetAsInt(ATTR_minPwdLen)
 	if err != nil {
 		return

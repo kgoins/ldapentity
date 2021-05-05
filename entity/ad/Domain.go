@@ -13,8 +13,8 @@ type Domain struct {
 	SupportedEtypes []KrbEtype
 }
 
-// NewDomainFromEntry builds a Domain from its ldap entry.
-func NewDomainFromEntry(domainEntity entity.Entity) (d Domain, err error) {
+// NewDomainFromEntity builds a Domain from its ldap entry.
+func NewDomainFromEntity(domainEntity entity.Entity) (d Domain, err error) {
 	d.ADEntity, err = NewADEntity(domainEntity)
 	if err != nil {
 		return
@@ -25,6 +25,6 @@ func NewDomainFromEntry(domainEntity entity.Entity) (d Domain, err error) {
 		return
 	}
 
-	d.PwdPolicy, err = NewPasswordPolicyFromEntry(domainEntity)
+	d.PwdPolicy, err = NewPasswordPolicyFromEntity(domainEntity)
 	return
 }

@@ -24,8 +24,8 @@ func newGroupStubsFromDNs(dnList []string) []Group {
 	return groups
 }
 
-// NewGroupFromEntry creates a Group object from its ldap entry
-func NewGroupFromEntry(groupEntity entity.Entity) (grp Group, err error) {
+// NewGroupFromEntity creates a Group object from its ldap entry
+func NewGroupFromEntity(groupEntity entity.Entity) (grp Group, err error) {
 	grp.ADEntity, err = NewADEntity(groupEntity)
 	if err != nil {
 		return
