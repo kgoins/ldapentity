@@ -15,7 +15,7 @@ type User struct {
 
 	AccountFlags UserAccountControl
 
-	SID   string
+	SID   SID
 	Email string
 
 	LastLogon       time.Time
@@ -28,10 +28,6 @@ type User struct {
 	Title string
 
 	Services []ServicePrincipal
-}
-
-func (user User) IsEmpty() bool {
-	return user.SamAccountName == ""
 }
 
 func newUserStubsFromDNs(dnList []string) []User {
@@ -48,8 +44,7 @@ func NewUserFromEntry(entity entity.Entity) (usr User, err error) {
 	uacStr, _ := entity.GetSingleValuedAttribute(ATTR_uac)
 	acctFlags, err := NewUAC(uacStr)
 
-	sidB64, _ := entity.GetSingleValuedAttribute(ATTR_sid)
-	sid, err := SidFromBase64(sidB64)
+	sid, err := NewSIDFromEntity(entity)
 	if err != nil {
 		return
 	}

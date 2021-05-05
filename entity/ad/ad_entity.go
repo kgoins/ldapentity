@@ -51,3 +51,7 @@ func NewADEntity(entity entity.Entity) (ADEntity, error) {
 		WhenChanged: changed,
 	}, nil
 }
+
+func (e ADEntity) IsEmpty() bool {
+	return e.DN == ""
+}
