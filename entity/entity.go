@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -83,6 +84,16 @@ func (e Entity) GetSingleValuedAttribute(name string) (string, bool) {
 	}
 
 	return val.Value.Values()[0], true
+}
+
+func (e Entity) GetAsInt(name string) (i int, found bool, err error) {
+	val, found := e.GetSingleValuedAttribute(name)
+	if !found {
+		return
+	}
+
+	i, err = strconv.Atoi(val)
+	return
 }
 
 func (e Entity) Size() int {

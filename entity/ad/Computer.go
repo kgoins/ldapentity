@@ -1,35 +1,17 @@
 package ad
 
 import (
-	"time"
-
-	ldap "gopkg.in/ldap.v2"
+	"github.com/kgoins/ldapentity/entity"
 )
 
 type Computer struct {
+	ADEntity
+	SecurableEntity
+
 	Hostname        string
-	SamAccountName  string
 	OperatingSystem string
 	OSVersion       string
-	WhenCreated     time.Time
-	WhenChanged     time.Time
-	SID             string
 	Services        []ServicePrincipal
-}
-
-var compAttrs = []string{
-	ATTR_dnsHostname,
-	ATTR_sAMAccountName,
-	ATTR_os,
-	ATTR_osVersion,
-	ATTR_created,
-	ATTR_changed,
-	ATTR_spn,
-	ATTR_sid,
-}
-
-func (c Computer) Empty() bool {
-	return c.Hostname == ""
 }
 
 func (c Computer) HasService(serviceName string) bool {
@@ -42,39 +24,44 @@ func (c Computer) HasService(serviceName string) bool {
 	return false
 }
 
-func NewComputerFromEntry(compEntry *ldap.Entry) Computer {
-	samAccountName := compEntry.GetAttributeValue(ATTR_sAMAccountName)
+func NewComputerFromEntry(compEntity entity.Entity) (comp Computer, err error) {
+	adEntity, err := NewADEntity(compEntity)
+	if err != nil {
+		return
+	}
 
-	spns := compEntry.GetAttributeValues(ATTR_spn)
-	services := NewServicePrincipals(spns, samAccountName)
+	se, err := NewSecurableEntity(compEntity)
+	if err != nil {
+		return
+	}
 
-	sidBytes := compEntry.GetRawAttributeValue(ATTR_sid)
-	sid := SidFromBytes(sidBytes)
+	spns, _ := compEntity.GetAttribute(ATTR_spn)
+	services := NewServicePrincipals(spns.Value.Values(), se.SamAccountName)
 
-	adCreatedTime := compEntry.GetAttributeValue(ATTR_created)
-	created, _ := TimeFromADGeneralizedTime(adCreatedTime)
-
-	adChangedTime := compEntry.GetAttributeValue(ATTR_changed)
-	changed, _ := TimeFromADGeneralizedTime(adChangedTime)
+	hostname, _ := compEntity.GetSingleValuedAttribute(ATTR_dnsHostname)
+	os, _ := compEntity.GetSingleValuedAttribute(ATTR_os)
+	version, _ := compEntity.GetSingleValuedAttribute(ATTR_osVersion)
 
 	computer := Computer{
-		Hostname:        compEntry.GetAttributeValue(ATTR_dnsHostname),
-		SamAccountName:  samAccountName,
-		OperatingSystem: compEntry.GetAttributeValue(ATTR_os),
-		OSVersion:       compEntry.GetAttributeValue(ATTR_osVersion),
-		WhenCreated:     created,
-		WhenChanged:     changed,
-		SID:             sid,
+		ADEntity:        adEntity,
+		SecurableEntity: se,
+
+		Hostname:        hostname,
+		OperatingSystem: os,
+		OSVersion:       version,
 		Services:        services,
 	}
 
-	return computer
+	return computer, nil
 }
 
-func NewComputersFromEntries(compEntries []*ldap.Entry) []Computer {
+func NewComputersFromEntries(compEntries []entity.Entity) []Computer {
 	computers := make([]Computer, 0, len(compEntries))
 	for _, compEntry := range compEntries {
-		computer := NewComputerFromEntry(compEntry)
+		computer, err := NewComputerFromEntry(compEntry)
+		if err != nil {
+			continue
+		}
 		computers = append(computers, computer)
 	}
 

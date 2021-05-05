@@ -29,11 +29,6 @@ type DNSZone struct {
 	Domain string
 }
 
-var dnsRecordAttrs = []string{
-	ATTR_name,
-	ATTR_dnsRecord,
-}
-
 func decodeARecordBytes(record []byte) (net.IP, error) {
 	rDataTypeBytes := []byte{record[2], record[3]}
 

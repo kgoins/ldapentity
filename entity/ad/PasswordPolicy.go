@@ -1,52 +1,43 @@
 package ad
 
 import (
-	"strconv"
-
-	ldap "gopkg.in/ldap.v2"
+	"github.com/kgoins/ldapentity/entity"
 )
 
 type PasswordPolicy struct {
-	MinLength        int
-	HistoryLength    int
+	MinLength     int
+	HistoryLength int
+
 	LockoutThreshold int
 	LockoutDuration  int
-	MinAge           int
-	MaxAge           int
+
+	MinAge int
+	MaxAge int
 }
 
-var passwordPolicyAttributes = []string{
-	ATTR_minPwdLen,
-	ATTR_historyLen,
-	ATTR_lockoutThreshold,
-	ATTR_lockoutDuration,
-	ATTR_minPwdAge,
-	ATTR_maxPwdAge,
-}
-
-func (p PasswordPolicy) Empty() bool {
-	checksum := p.HistoryLength + p.LockoutDuration + p.LockoutThreshold
-	checksum += p.MaxAge + p.MinAge + p.MinLength
-
-	return (checksum == 0)
-}
-
-func NewPasswordPolicyFromEntry(policy *ldap.Entry) PasswordPolicy {
-	minLen, _ := strconv.Atoi(policy.GetAttributeValue(ATTR_minPwdLen))
-	histLen, _ := strconv.Atoi(policy.GetAttributeValue(ATTR_historyLen))
-
-	lockoutThreshold, _ := strconv.Atoi(policy.GetAttributeValue(ATTR_lockoutThreshold))
-	lockoutDuration := ADIntervalToMins(policy.GetAttributeValue(ATTR_lockoutDuration))
-
-	minAge := ADIntervalToDays(policy.GetAttributeValue(ATTR_minPwdAge))
-	maxAge := ADIntervalToDays(policy.GetAttributeValue(ATTR_maxPwdAge))
-
-	return PasswordPolicy{
-		MinLength:        minLen,
-		HistoryLength:    histLen,
-		LockoutThreshold: lockoutThreshold,
-		LockoutDuration:  lockoutDuration,
-		MinAge:           minAge,
-		MaxAge:           maxAge,
+func NewPasswordPolicyFromEntry(policyEntity entity.Entity) (p PasswordPolicy, err error) {
+	p.MinLength, _, err = policyEntity.GetAsInt(ATTR_minPwdLen)
+	if err != nil {
+		return
 	}
+
+	p.HistoryLength, _, err = policyEntity.GetAsInt(ATTR_historyLen)
+	if err != nil {
+		return
+	}
+
+	p.LockoutThreshold, _, err = policyEntity.GetAsInt(ATTR_lockoutThreshold)
+	if err != nil {
+		return
+	}
+
+	durStr, _ := policyEntity.GetSingleValuedAttribute(ATTR_minPwdAge)
+	p.LockoutDuration = ADIntervalToMins(durStr)
+
+	minAgeStr, _ := policyEntity.GetSingleValuedAttribute(ATTR_minPwdAge)
+	p.MinAge = ADIntervalToDays(minAgeStr)
+
+	maxAgeStr, _ := policyEntity.GetSingleValuedAttribute(ATTR_maxPwdAge)
+	p.MaxAge = ADIntervalToDays(maxAgeStr)
+	return
 }

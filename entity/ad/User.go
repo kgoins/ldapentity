@@ -1,7 +1,6 @@
 package ad
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/kgoins/ldapentity/entity"
@@ -9,24 +8,20 @@ import (
 
 type User struct {
 	ADEntity
+	SecurableEntity
 
-	UPN            string
-	SamAccountName string
-
+	UPN          string
 	AccountFlags UserAccountControl
 
-	SID   SID
 	Email string
+	Title string
 
 	LastLogon       time.Time
 	LogonCount      int
 	PasswordLastSet time.Time
 
-	IsAdmin bool
-	Groups  []Group
-
-	Title string
-
+	IsAdmin  bool
+	Groups   []Group
 	Services []ServicePrincipal
 }
 
@@ -41,16 +36,24 @@ func newUserStubsFromDNs(dnList []string) []User {
 }
 
 func NewUserFromEntry(entity entity.Entity) (usr User, err error) {
-	uacStr, _ := entity.GetSingleValuedAttribute(ATTR_uac)
-	acctFlags, err := NewUAC(uacStr)
+	usr.ADEntity, err = NewADEntity(entity)
+	if err != nil {
+		return
+	}
 
-	sid, err := NewSIDFromEntity(entity)
+	usr.SecurableEntity, err = NewSecurableEntity(entity)
+	if err != nil {
+		return
+	}
+
+	uacStr, _ := entity.GetSingleValuedAttribute(ATTR_uac)
+	usr.AccountFlags, err = NewUAC(uacStr)
 	if err != nil {
 		return
 	}
 
 	adPwdSetTime, _ := entity.GetSingleValuedAttribute(ATTR_pwdLastSet)
-	passLastSet := TimeFromADTimestamp(adPwdSetTime)
+	usr.PasswordLastSet = TimeFromADTimestamp(adPwdSetTime)
 
 	lastLogonStr, _ := entity.GetSingleValuedAttribute(ATTR_lastLogon)
 	lastLogonTime := TimeFromADTimestamp(lastLogonStr)
@@ -58,63 +61,32 @@ func NewUserFromEntry(entity entity.Entity) (usr User, err error) {
 	lastLogonTimestampStr, _ := entity.GetSingleValuedAttribute(ATTR_lastLogonTimestamp)
 	lastLogonTimestamp := TimeFromADTimestamp(lastLogonTimestampStr)
 
-	var lastLogon time.Time
 	if lastLogonTimestamp.Before(lastLogonTime) {
-		lastLogon = lastLogonTime
+		usr.LastLogon = lastLogonTime
 	} else {
-		lastLogon = lastLogonTimestamp
+		usr.LastLogon = lastLogonTimestamp
 	}
 
-	logonCountStr, _ := entity.GetSingleValuedAttribute(ATTR_logonCount)
-	logonCount, err := strconv.Atoi(logonCountStr)
+	usr.LogonCount, _, err = entity.GetAsInt(ATTR_logonCount)
 	if err != nil {
 		return
 	}
 
-	adminCountStr, _ := entity.GetSingleValuedAttribute(ATTR_adminCount)
-	adminCount, err := strconv.Atoi(adminCountStr)
+	adminCount, _, err := entity.GetAsInt(ATTR_adminCount)
 	if err != nil {
 		return
 	}
-	isAdmin := (adminCount == 1)
+	usr.IsAdmin = (adminCount == 1)
 
 	groupDNList, _ := entity.GetAttribute(ATTR_memberOf)
-	groups := newGroupStubsFromDNs(groupDNList.Value.Values())
-
-	samaccountname, _ := entity.GetSingleValuedAttribute(ATTR_sAMAccountName)
+	usr.Groups = newGroupStubsFromDNs(groupDNList.Value.Values())
 
 	serviceStrs, _ := entity.GetAttribute(ATTR_spn)
-	services := NewServicePrincipals(serviceStrs.Value.Values(), samaccountname)
+	usr.Services = NewServicePrincipals(serviceStrs.Value.Values(), usr.SamAccountName)
 
-	upn, _ := entity.GetSingleValuedAttribute(ATTR_userPrincipalName)
-	mail, _ := entity.GetSingleValuedAttribute(ATTR_mail)
-	title, _ := entity.GetSingleValuedAttribute(ATTR_title)
+	usr.UPN, _ = entity.GetSingleValuedAttribute(ATTR_userPrincipalName)
+	usr.Email, _ = entity.GetSingleValuedAttribute(ATTR_mail)
+	usr.Title, _ = entity.GetSingleValuedAttribute(ATTR_title)
 
-	adEntity, err := NewADEntity(entity)
-	if err != nil {
-		return
-	}
-
-	return User{
-		ADEntity: adEntity,
-
-		UPN:            upn,
-		SamAccountName: samaccountname,
-
-		AccountFlags: acctFlags,
-
-		SID:   sid,
-		Email: mail,
-
-		LastLogon:       lastLogon,
-		LogonCount:      logonCount,
-		PasswordLastSet: passLastSet,
-
-		IsAdmin: isAdmin,
-
-		Title: title,
-
-		Groups:   groups,
-		Services: services,
-	}, nil
+	return
 }

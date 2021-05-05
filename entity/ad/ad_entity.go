@@ -18,6 +18,19 @@ type ADEntity struct {
 	WhenChanged time.Time
 }
 
+func NewADEntityFromDN(dn string) ADEntity {
+	return ADEntity{DN: dn}
+}
+
+func newADEntitiesFromDNs(dnList []string) []ADEntity {
+	entities := make([]ADEntity, 0, len(dnList))
+	for _, dn := range dnList {
+		entities = append(entities, ADEntity{DN: dn})
+	}
+
+	return entities
+}
+
 func NewADEntity(entity entity.Entity) (ADEntity, error) {
 	dn, found := entity.GetDN()
 	if !found {

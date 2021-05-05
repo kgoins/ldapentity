@@ -29,10 +29,12 @@ const (
 	ATTR_osVersion          = "operatingSystemVersion"
 	ATTR_domaincomponent    = "dc"
 	ATTR_memberOf           = "memberOf"
+	ATTR_member             = "member"
 	ATTR_mail               = "mail"
 	ATTR_title              = "title"
 	ATTR_adminCount         = "adminCount"
 	ATTR_uac                = "userAccountControl"
+	ATTR_groupType          = "groupType"
 )
 
 var (
