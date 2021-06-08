@@ -1,8 +1,6 @@
 package entity
 
 import (
-	"fmt"
-
 	hashset "github.com/kgoins/hashset/pkg"
 )
 
@@ -25,14 +23,4 @@ func (attr *Attribute) SetValue(vals ...string) {
 
 func (attr Attribute) HasValue(val string) bool {
 	return attr.Value.Contains(val)
-}
-
-func (attr Attribute) Stringify() []string {
-	vals := make([]string, 0, attr.Value.Size())
-
-	for _, value := range attr.Value.Values() {
-		vals = append(vals, fmt.Sprintf("%s: %s", attr.Name, value))
-	}
-
-	return vals
 }
