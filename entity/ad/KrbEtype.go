@@ -28,7 +28,7 @@ func (kt KrbEtype) String() string {
 
 func DecodeKrbEtypes(intEtypes int) KrbEtypeList {
 	eTypes := []KrbEtype{}
-	for eType, _ := range etypeMap {
+	for eType := range etypeMap {
 		if int(eType)&intEtypes != 0 {
 			eTypes = append(eTypes, eType)
 		}
