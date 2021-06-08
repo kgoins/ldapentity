@@ -27,7 +27,7 @@ func (td TrustDirection) String() string {
 }
 
 func DecodeTrustDirection(tdInt int) TrustDirection {
-	for td, _ := range trustDirectionMap {
+	for td := range trustDirectionMap {
 		if int(td)&tdInt != 0 {
 			return td
 		}
