@@ -6,16 +6,16 @@ import (
 )
 
 type Entity struct {
-	attributes map[string]EntityAttribute
+	attributes map[string]Attribute
 }
 
 func NewEntity() Entity {
 	return Entity{
-		attributes: make(map[string]EntityAttribute),
+		attributes: make(map[string]Attribute),
 	}
 }
 
-func (e *Entity) AddAttribute(attr EntityAttribute) {
+func (e *Entity) AddAttribute(attr Attribute) {
 	attrName := strings.ToLower(attr.Name)
 
 	existing, found := e.GetAttribute(attrName)
@@ -52,8 +52,8 @@ func (e Entity) GetAllAttributeNames() []string {
 	return names
 }
 
-func (e Entity) GetAllAttributes() []EntityAttribute {
-	attrs := make([]EntityAttribute, e.Size())
+func (e Entity) GetAllAttributes() []Attribute {
+	attrs := make([]Attribute, e.Size())
 
 	i := 0
 	for _, val := range e.attributes {
@@ -63,12 +63,12 @@ func (e Entity) GetAllAttributes() []EntityAttribute {
 	return attrs
 }
 
-func (e *Entity) SetAttribute(attr EntityAttribute) {
+func (e *Entity) SetAttribute(attr Attribute) {
 	attrName := strings.ToLower(attr.Name)
 	e.attributes[attrName] = attr
 }
 
-func (e Entity) GetAttribute(name string) (EntityAttribute, bool) {
+func (e Entity) GetAttribute(name string) (Attribute, bool) {
 	val, found := e.attributes[strings.ToLower(name)]
 	return val, found
 }
