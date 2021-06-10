@@ -99,3 +99,24 @@ func (e Entity) GetAsInt(name string) (i int, found bool, err error) {
 func (e Entity) Size() int {
 	return len(e.attributes)
 }
+
+func (e Entity) Equals(e2 Entity) bool {
+	if e.Size() != e2.Size() {
+		return false
+	}
+
+	for _, attrName := range e.GetAllAttributeNames() {
+		a1, f1 := e.GetAttribute(attrName)
+		a2, f2 := e2.GetAttribute(attrName)
+
+		if !f1 || !f2 {
+			return false
+		}
+
+		if !a1.Equals(a2) {
+			return false
+		}
+	}
+
+	return true
+}
