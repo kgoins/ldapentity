@@ -24,3 +24,11 @@ func (attr *Attribute) SetValue(vals ...string) {
 func (attr Attribute) HasValue(val string) bool {
 	return attr.Value.Contains(val)
 }
+
+func (attr Attribute) Equals(a2 Attribute) bool {
+	if attr.Name != a2.Name {
+		return false
+	}
+
+	return attr.Value.Equals(a2.Value)
+}
