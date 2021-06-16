@@ -32,3 +32,7 @@ func (attr Attribute) Equals(a2 Attribute) bool {
 
 	return attr.Value.Equals(a2.Value)
 }
+
+func (attr Attribute) GetValues() []string {
+	return attr.Value.Values()
+}
