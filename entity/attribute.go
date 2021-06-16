@@ -9,10 +9,10 @@ type Attribute struct {
 	Value hashset.StrHashset
 }
 
-func NewEntityAttribute(name string, value string) Attribute {
+func NewEntityAttribute(name string, value ...string) Attribute {
 	return Attribute{
 		Name:  name,
-		Value: hashset.NewStrHashset(value),
+		Value: hashset.NewStrHashset(value...),
 	}
 }
 
