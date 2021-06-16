@@ -9,10 +9,13 @@ type Entity struct {
 	attributes map[string]Attribute
 }
 
-func NewEntity() Entity {
-	return Entity{
+func NewEntity(dn string) Entity {
+	e := Entity{
 		attributes: make(map[string]Attribute),
 	}
+	e.AddAttribute(NewEntityAttribute("dn", dn))
+
+	return e
 }
 
 func (e *Entity) AddAttribute(attr Attribute) {
