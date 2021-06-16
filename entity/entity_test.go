@@ -11,11 +11,11 @@ func TestEntity_Equals_ShouldEqual(t *testing.T) {
 	a1 := entity.NewEntityAttribute("a1", "v1")
 	a2 := entity.NewEntityAttribute("a2", "v2")
 
-	e1 := entity.NewEntity()
+	e1 := entity.NewEntity("cn=testentity")
 	e1.AddAttribute(a1)
 	e1.AddAttribute(a2)
 
-	e2 := entity.NewEntity()
+	e2 := entity.NewEntity("cn=testentity")
 	e2.AddAttribute(a1)
 	e2.AddAttribute(a2)
 
@@ -27,11 +27,11 @@ func TestEntity_Equals_ShouldNotEqual(t *testing.T) {
 	a1 := entity.NewEntityAttribute("a1", "v1")
 	a2 := entity.NewEntityAttribute("a2", "v2")
 
-	e1 := entity.NewEntity()
+	e1 := entity.NewEntity("cn=testentity")
 	e1.AddAttribute(a1)
 	e1.AddAttribute(a2)
 
-	e2 := entity.NewEntity()
+	e2 := entity.NewEntity("cn=testentity")
 	e2.AddAttribute(a1)
 
 	r := require.New(t)
