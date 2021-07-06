@@ -8,6 +8,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/audibleblink/msldapuac"
+	hashset "github.com/kgoins/hashset/pkg"
 )
 
 type UserAccountControl int
@@ -22,8 +23,13 @@ func NewUAC(uacStr string) (uac UserAccountControl, err error) {
 }
 
 // GetFlagNames returns the string representation of all set UAC flags
-func (uac UserAccountControl) GetFlagNames() ([]string, error) {
-	return msldapuac.ParseUAC(int64(uac))
+func (uac UserAccountControl) GetFlagNames() (set hashset.StrHashset, err error) {
+	vals, err := msldapuac.ParseUAC(int64(uac))
+	if err != nil {
+		return
+	}
+
+	return hashset.NewStrHashset(vals...), nil
 }
 
 // IsFlagSet
@@ -48,9 +54,9 @@ func UACPrint(dest io.Writer) {
 	}
 
 	sort.Strings(sorted)
-	fmt.Fprintf(w, "Property\tValue\n")
-	fmt.Fprintf(w, "---\t---\n")
+	fmt.Fprint(w, "Property\tValue\n")
+	fmt.Fprint(w, "---\t---\n")
 	for _, line := range sorted {
-		fmt.Fprintf(w, line)
+		fmt.Fprint(w, line)
 	}
 }

@@ -32,11 +32,7 @@ func IsValidLdapQuery(ldapFilter string) bool {
 
 func IsValidLdapQuery(ldapFilter string) bool {
 	_, err := ldap.CompileFilter(ldapFilter)
-	if err != nil {
-		return false
-	}
-
-	return true
+	return (err == nil)
 }
 
 func IsGuid(guidStr string) bool {

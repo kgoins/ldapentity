@@ -34,7 +34,7 @@ func newADEntitiesFromDNs(dnList []string) []ADEntity {
 func NewADEntity(entity entity.Entity) (ADEntity, error) {
 	dn, found := entity.GetDN()
 	if !found {
-		return ADEntity{}, errors.New("Unable to parse DN")
+		return ADEntity{}, errors.New("unable to parse DN")
 	}
 
 	cn, _ := entity.GetSingleValuedAttribute(ATTR_CN)

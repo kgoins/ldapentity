@@ -8,6 +8,7 @@ import (
 
 const adGeneralizedTimeFmt string = "20060102150405-0700"
 
+// Note: ad generalized timestamps should be standardized to zulu time
 func TimeFromADGeneralizedTime(adTime string) (time.Time, error) {
 	adTime = strings.Split(adTime, ".")[0] + "-0000"
 

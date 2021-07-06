@@ -25,16 +25,6 @@ type User struct {
 	Services []ServicePrincipal
 }
 
-func newUserStubsFromDNs(dnList []string) []User {
-	users := make([]User, 0, len(dnList))
-	for _, dn := range dnList {
-		user := User{ADEntity: ADEntity{DN: dn}}
-		users = append(users, user)
-	}
-
-	return users
-}
-
 func NewUserFromEntry(entity entity.Entity) (usr User, err error) {
 	usr.ADEntity, err = NewADEntity(entity)
 	if err != nil {

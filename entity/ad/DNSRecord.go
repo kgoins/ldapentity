@@ -42,11 +42,10 @@ func decodeARecordBytesFromB64(recordB64 string) (ip net.IP, err error) {
 func decodeARecordBytes(record []byte) (net.IP, error) {
 	rDataTypeBytes := []byte{record[2], record[3]}
 
-	var rDataType uint16
-	rDataType = binary.LittleEndian.Uint16(rDataTypeBytes)
+	rDataType := binary.LittleEndian.Uint16(rDataTypeBytes)
 
 	if rDataType != DNS_A_RECORD {
-		return net.IP{}, errors.New("Unknown record format")
+		return net.IP{}, errors.New("unknown record format")
 	}
 
 	rData := record[24:28]
@@ -59,7 +58,7 @@ func NewDNSZoneFromEntry(entry entity.Entity) (zone DNSZone, err error) {
 	found := true
 	zone.DN, found = entry.GetDN()
 	if !found {
-		err = errors.New("Unable to get DN")
+		err = errors.New("unable to get DN")
 		return
 	}
 
@@ -70,7 +69,7 @@ func NewDNSZoneFromEntry(entry entity.Entity) (zone DNSZone, err error) {
 func NewDNSRecordFromEntity(entry entity.Entity) (r DNSRecord, err error) {
 	recordStr, found := entry.GetSingleValuedAttribute(ATTR_dnsRecord)
 	if !found {
-		err = errors.New("Unable to get record value")
+		err = errors.New("unable to get record value")
 		return
 	}
 

@@ -5,37 +5,38 @@ import (
 	"time"
 
 	"github.com/kgoins/ldapentity/entity/ad"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTimeFromADGeneralizedTime(t *testing.T) {
-	origTime, _ := time.Parse(time.UnixDate, "Wed Nov 28 11:43:42 CST 2018")
+	r := require.New(t)
+
+	origTime, err := time.Parse(time.UnixDate, "Wed Nov 28 17:43:42 +0000 2018")
+	r.NoError(err)
+
 	adTime := "20181128174342.0Z"
-
 	convTime, err := ad.TimeFromADGeneralizedTime(adTime)
-	if err != nil {
-		t.Errorf("Failed to convert AD generalized time")
-	}
+	r.NoError(err)
 
-	origTimeStr := origTime.Format(time.ANSIC)
-	convTimeStr := convTime.Format(time.ANSIC)
+	origTimeStr := origTime.Format(time.UnixDate)
+	convTimeStr := convTime.Format(time.UnixDate)
 
-	if convTimeStr != origTimeStr {
-		t.Errorf("Failed to convert AD generalized time")
-	}
+	r.Equal(origTimeStr, convTimeStr)
 }
 
 func TestTimeFromADTimestamp(t *testing.T) {
-	origTime, _ := time.Parse(time.UnixDate, "Wed Nov 28 11:43:42 CST 2018")
-	adTime := "131880920666196310"
+	r := require.New(t)
 
+	origTime, err := time.Parse(time.UnixDate, "Fri Nov 30 17:54:26 CST 2018")
+	r.NoError(err)
+
+	adTime := "131880920666196310"
 	convTime := ad.TimeFromADTimestamp(adTime)
 
 	origTimeStr := origTime.Format(time.ANSIC)
 	convTimeStr := convTime.Format(time.ANSIC)
 
-	if convTimeStr != origTimeStr {
-		t.Errorf("Failed to convert AD timestamp")
-	}
+	r.Equal(origTimeStr, convTimeStr)
 }
 
 func TestADIntervalToDays(t *testing.T) {

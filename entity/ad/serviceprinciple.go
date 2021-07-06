@@ -28,7 +28,7 @@ func isIgnoredService(svc string) bool {
 
 func NewServicePrincipals(spns []string, principalName string) []ServicePrincipal {
 	services := make([]ServicePrincipal, 0, len(spns))
-	spnParts := make([]string, 2, 2)
+	var spnParts []string
 
 	for _, spn := range spns {
 		spnParts = strings.SplitN(spn, "/", 2)
