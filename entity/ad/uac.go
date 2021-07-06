@@ -48,9 +48,9 @@ func UACPrint(dest io.Writer) {
 	}
 
 	sort.Strings(sorted)
-	fmt.Fprintf(w, "Property\tValue\n")
-	fmt.Fprintf(w, "---\t---\n")
+	fmt.Fprint(w, "Property\tValue\n")
+	fmt.Fprint(w, "---\t---\n")
 	for _, line := range sorted {
-		fmt.Fprintf(w, line)
+		fmt.Fprint(w, line)
 	}
 }
