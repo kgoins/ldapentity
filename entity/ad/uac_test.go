@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/audibleblink/msldapuac"
+	hashset "github.com/kgoins/hashset/pkg"
 	"github.com/kgoins/ldapentity/entity/ad"
 	"github.com/stretchr/testify/assert"
 )
@@ -24,10 +25,10 @@ func TestUACPrint(t *testing.T) {
 
 func TestUACParse(t *testing.T) {
 	t.Run("parses and calculates the correct values", func(t *testing.T) {
-		want := []string{
+		want := hashset.NewStrHashset(
 			ad.GetUACFlagName(msldapuac.Script),
 			ad.GetUACFlagName(msldapuac.NormalAccount),
-		}
+		)
 
 		uac, err := ad.NewUAC("513")
 		assert.NoError(t, err)
@@ -35,12 +36,11 @@ func TestUACParse(t *testing.T) {
 		flags, err := uac.GetFlagNames()
 		assert.NoError(t, err)
 
-		assert.Equal(t, want, flags)
+		assert.True(t, flags.Equals(want))
 	})
 
 	t.Run("returns an error when invalid input is passed", func(t *testing.T) {
-		got, err := ad.NewUAC("I AM NOT A NUMBER!")
-		assert.Nil(t, got)
+		_, err := ad.NewUAC("I AM NOT A NUMBER!")
 		assert.NotNil(t, err)
 	})
 }
