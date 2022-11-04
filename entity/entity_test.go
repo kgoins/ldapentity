@@ -7,6 +7,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestEntity_AttrSetGet(t *testing.T) {
+	r := require.New(t)
+
+	attrName := "myVal"
+	a1 := entity.NewEntityAttribute(attrName, "v1")
+
+	e1 := entity.NewEntity("cn=testentity")
+	e1.AddAttribute(a1)
+
+	retAttr, found := e1.GetAttribute(attrName)
+	r.True(found)
+	r.Equal(attrName, retAttr.Name)
+	r.Equal("v1", retAttr.GetValues()[0])
+}
+
 func TestEntity_Equals_ShouldEqual(t *testing.T) {
 	a1 := entity.NewEntityAttribute("a1", "v1")
 	a2 := entity.NewEntityAttribute("a2", "v2")
