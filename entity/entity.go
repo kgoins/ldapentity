@@ -2,7 +2,6 @@ package entity
 
 import (
 	"strconv"
-	"strings"
 	"errors"
 	"fmt"
 
@@ -23,11 +22,9 @@ func NewEntity(dn string) Entity {
 }
 
 func (e *Entity) AddAttribute(attr Attribute) {
-	attrName := strings.ToLower(attr.Name)
-
-	existing, found := e.GetAttribute(attrName)
+	existing, found := e.GetAttribute(attr.Name)
 	if !found {
-		e.attributes[attrName] = attr
+		e.attributes[attr.Name] = attr
 		return
 	}
 
@@ -85,17 +82,16 @@ func (e Entity) GetAllAttributes() []Attribute {
 }
 
 func (e *Entity) SetAttribute(attr Attribute) {
-	attrName := strings.ToLower(attr.Name)
-	e.attributes[attrName] = attr
+	e.attributes[attr.Name] = attr
 }
 
 func (e Entity) GetAttribute(name string) (Attribute, bool) {
-	val, found := e.attributes[strings.ToLower(name)]
+	val, found := e.attributes[name]
 	return val, found
 }
 
 func (e Entity) GetSingleValuedAttribute(name string) (string, bool) {
-	val, found := e.attributes[strings.ToLower(name)]
+	val, found := e.attributes[name]
 	if !found {
 		return "", false
 	}
