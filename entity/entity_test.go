@@ -38,6 +38,21 @@ func TestEntity_Equals_ShouldNotEqual(t *testing.T) {
 	r.False(e1.Equals(e2))
 }
 
+func TestEntity_GetDN(t *testing.T) {
+	r := require.New(t)
+
+	e0 := entity.NewEntity("")
+	_, found := e0.GetDN()
+	r.False(found)
+
+	goodDN := "cn=testentity"
+	e1 := entity.NewEntity(goodDN)
+
+	dn, found := e1.GetDN()
+	r.True(found)
+	r.Equal(goodDN, dn)
+}
+
 func TestEntity_GetID(t *testing.T) {
 	r := require.New(t)
 

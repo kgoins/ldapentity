@@ -44,6 +44,10 @@ func (e Entity) GetDN() (string, bool) {
 		dn, found = e.GetSingleValuedAttribute("distinguishedName")
 	}
 
+	if dn == "" {
+		return dn, false
+	}
+
 	return dn, found
 }
 
