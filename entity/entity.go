@@ -3,6 +3,10 @@ package entity
 import (
 	"strconv"
 	"strings"
+	"errors"
+	"fmt"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 type Entity struct {
@@ -40,7 +44,21 @@ func (e Entity) GetDN() (string, bool) {
 		dn, found = e.GetSingleValuedAttribute("distinguishedName")
 	}
 
+	if dn == "" {
+		return dn, false
+	}
+
 	return dn, found
+}
+
+func (e Entity) GetID() (string, error) {
+	dn, found := e.GetDN()
+	if !found {
+		return "", errors.New("unable to generate ID without DN")
+	}
+
+	dnHash := xxhash.Sum64String(dn)
+	return fmt.Sprintf("%x", dnHash), nil
 }
 
 func (e Entity) GetAllAttributeNames() []string {
