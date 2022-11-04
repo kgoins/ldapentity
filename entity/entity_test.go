@@ -37,3 +37,19 @@ func TestEntity_Equals_ShouldNotEqual(t *testing.T) {
 	r := require.New(t)
 	r.False(e1.Equals(e2))
 }
+
+func TestEntity_GetID(t *testing.T) {
+	r := require.New(t)
+
+	e0 := entity.NewEntity("")
+	_, err := e0.GetID()
+	r.Error(err)
+
+	e1 := entity.NewEntity("cn=testentity")
+	knownHash := "57ab144f546fa1e3"
+
+	id, err := e1.GetID()
+	r.NoError(err)
+
+	r.Equal(knownHash, id)
+}
